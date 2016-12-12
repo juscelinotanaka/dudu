@@ -217,6 +217,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRIPFLAGS = "";
 			};
 			name = Debug;
 		};
@@ -224,6 +225,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRIPFLAGS = "";
 			};
 			name = Release;
 		};
@@ -246,6 +248,7 @@
 				5F5D5F571DF7189D0068801A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
