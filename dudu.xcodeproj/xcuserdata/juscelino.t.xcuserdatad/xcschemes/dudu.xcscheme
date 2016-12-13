@@ -47,7 +47,7 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
       useCustomWorkingDirectory = "YES"
-      customWorkingDirectory = "$(PROJECT_DIR)"
+      customWorkingDirectory = "$(PROJECT_DIR)/dudu"
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
@@ -64,7 +64,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "input.txt"
+            argument = "input2.txt"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

@@ -20,14 +20,26 @@
 
 using namespace std;
 
+typedef enum : int {
+    Branco,
+    Cinza,
+    Preto,
+} TColor;
+
 typedef struct {
     int value;
     int start, end;
+    TColor color;
 } TNode;
+
+bool sim = true;
 
 class Grafo
 {
-    int vertices;
+    int totalVertices;
+    
+    vector<TNode> vertice;
+    
     vector<vector<int> > adj;
     
     vector<vector<TNode> > adjs;
@@ -44,66 +56,96 @@ public:
     void dfs(int v);
     
     void ListaVizinhos ();
+    
+    void DAG (int v);
 };
 
 Grafo::Grafo() {
     
 }
 
+int tempo = 0;
+
 Grafo::Grafo(int totalVertices) {
-    cout << "Inicializando com: " << totalVertices << endl;
-    this->vertices = totalVertices;
+    this->totalVertices = totalVertices;
     
     for (int i = 0; i < totalVertices; i++) {
         adj.push_back(vector<int>()); // Add an empty row
         adjs.push_back(vector<TNode>());
+        
+        TNode temp;
+        temp.color = Branco;
+        temp.value = i;
+        temp.end = 0;
+        vertice.push_back(temp);
     }
 }
 
 void Grafo::addAresta(int v1, int v2) {
-    cout << "linked " << v1 << " to " << v2 << endl;
     adj[v1].push_back(v2); // Add column to all rows
     
+    adjs[v1].push_back(vertice[v2]);
+}
+
+void Grafo::DAG (int v) {
     
-    TNode temp;
-    temp.value = v2;
-    adjs[v1].push_back(temp);
+    vertice[v].start = tempo++;
+    vertice[v].color = Cinza;
+    
+    for (vector<TNode>::iterator neighbours = adjs[v].begin() ; neighbours != adjs[v].end(); neighbours++) {
+        if (vertice[neighbours->value].color == Branco) {
+            DAG(neighbours->value);
+        }
+        else if (vertice[neighbours->value].color == Cinza) {
+            if (vertice[neighbours->value].end == 0) {
+//                cout << "loop de " << v << " para " << neighbours->value << endl;
+                sim = false;
+            }
+        }
+    }
+    
+    vertice[v].end = tempo++;
+    vertice[v].color = Preto;
+    
 }
 
 void Grafo::dfs(int v)
 {
     stack<int> pilha;
-    bool visitados[vertices]; // vetor de visitados
+    bool visitados[totalVertices]; // vetor de visitados
+    int tempo = 0;
     
     // marca todos como não visitados
-    for(int i = 0; i < vertices; i++)
+    for(int i = 0; i < totalVertices; i++)
         visitados[i] = false;
     
     while(true)
     {
+        vector<TNode>::iterator it;
+        
         if(!visitados[v])
         {
+            tempo++;
             cout << "Visitando vertice " << v << " ...\n";
             visitados[v] = true; // marca como visitado
             pilha.push(v); // insere "v" na pilha
         }
         
         bool achou = false;
-        vector<int>::iterator it;
         
         // busca por um vizinho não visitado
-        for(it = adj[v].begin(); it != adj[v].end(); it++)
+        for(it = adjs[v].begin(); it != adjs[v].end(); it++)
         {
-            if(!visitados[*it])
+            if(!visitados[it->value])
             {
                 achou = true;
                 break;
             }
         }
         
-        if(achou)
-            v = *it; // atualiza o "v"
-        else
+        if(achou) {
+            v = it->value; // atualiza o "v"
+        } else
         {
             // se todos os vizinhos estão visitados ou não existem vizinhos
             // remove da pilha
@@ -120,9 +162,9 @@ void Grafo::dfs(int v)
 
 void Grafo::DuduDFS (int v) {
     stack<int> pilha;
-    bool visitados[vertices];
+    bool visitados[totalVertices];
     
-    for (int i = 0; i < vertices; i++) {
+    for (int i = 0; i < totalVertices; i++) {
         visitados[i] = false;
     }
 
@@ -138,7 +180,6 @@ void Grafo::DuduDFS (int v) {
         
         for(it = adj[v].begin(); it != adj[v].end(); it++)
         {
-//            cout << "\t: " << *it << endl;
             if(!visitados[*it])
             {
                 achou = true;
@@ -167,10 +208,10 @@ void Grafo::DuduDFS (int v) {
 
 void Grafo::DuduDFS () {
     stack<int> pilha;
-    bool visitados[vertices]; // vetor de visitados
+    bool visitados[totalVertices]; // vetor de visitados
     
     // marca todos como não visitados
-    for(int i = 0; i < vertices; i++)
+    for(int i = 0; i < totalVertices; i++)
         visitados[i] = false;
     
     for (int i = 0; i < adj.size(); i++) {
@@ -269,8 +310,6 @@ int main (int argc, const char * argv[]) {
     
     InitializeInput(argc, argv);
     
-    cout << "iniciou" << endl;
-    
     cin >> t;
     for (int i = 0; i < t; i++) {
         cin >> n;
@@ -285,12 +324,10 @@ int main (int argc, const char * argv[]) {
             g.addAresta(a, b);
         }
         
-//        g.ListaVizinhos();
-        g.DuduDFS();
+        g.DAG(0);
         
-        cout << endl;
+        cout << (sim  ? "NAO" : "SIM") << endl;
     }
-    
     
     
     // Grafo g;

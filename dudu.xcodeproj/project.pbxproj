@@ -25,6 +25,7 @@
 /* Begin PBXFileReference section */
 		5F5D5F4E1DF7189D0068801A /* dudu */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = dudu; sourceTree = BUILT_PRODUCTS_DIR; };
 		5F5D5F511DF7189D0068801A /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		5F89BD431E006CCB005445ED /* input2.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = input2.txt; sourceTree = "<group>"; };
 		F9277EAC1DFF961F00973F55 /* input.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = input.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -59,6 +60,7 @@
 			isa = PBXGroup;
 			children = (
 				F9277EAC1DFF961F00973F55 /* input.txt */,
+				5F89BD431E006CCB005445ED /* input2.txt */,
 				5F5D5F511DF7189D0068801A /* main.cpp */,
 			);
 			path = dudu;
