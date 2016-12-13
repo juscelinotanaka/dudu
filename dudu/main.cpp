@@ -20,12 +20,17 @@
 
 using namespace std;
 
+typedef struct {
+    int value;
+    int start, end;
+} TNode;
 
 class Grafo
 {
     int vertices;
     vector<vector<int> > adj;
-    vector<int> * ad;
+    
+    vector<vector<TNode> > adjs;
     
 public:
     Grafo();
@@ -49,25 +54,20 @@ Grafo::Grafo(int totalVertices) {
     cout << "Inicializando com: " << totalVertices << endl;
     this->vertices = totalVertices;
     
-    ad = new vector<int>[totalVertices];
-    
     for (int i = 0; i < totalVertices; i++) {
         adj.push_back(vector<int>()); // Add an empty row
-    }
-    
-    vector< vector<int> > vec;
-    for (int i = 0; i < 4; i++) {
-        vec.push_back(vector<int>()); // Add an empty row
-        for (int i = 0; i < vec.size(); i++) {
-            vec[i].push_back(i); // Add column to all rows
-        }
+        adjs.push_back(vector<TNode>());
     }
 }
 
 void Grafo::addAresta(int v1, int v2) {
     cout << "linked " << v1 << " to " << v2 << endl;
     adj[v1].push_back(v2); // Add column to all rows
-    ad[v1].push_back(v2);
+    
+    
+    TNode temp;
+    temp.value = v2;
+    adjs[v1].push_back(temp);
 }
 
 void Grafo::dfs(int v)
@@ -247,7 +247,7 @@ int InitializeInput (int argc, const char * argv[]) {
         cCurrentPath[sizeof(cCurrentPath) - 1] = '\0'; /* not really required */
         
         string path(cCurrentPath);
-        path.append("/dudu/");
+        path.append("/");
         path.append(argv[1]);
         
         FILE * fp = freopen(path.c_str(), "r", stdin);
@@ -268,6 +268,8 @@ int main (int argc, const char * argv[]) {
     Grafo g;
     
     InitializeInput(argc, argv);
+    
+    cout << "iniciou" << endl;
     
     cin >> t;
     for (int i = 0; i < t; i++) {
