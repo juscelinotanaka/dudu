@@ -15,117 +15,354 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <unistd.h>
+#define GetCurrentDir getcwd
+
 using namespace std;
 
-class Documento {
-    int id;
-    vector<int> dependentes;
-public:
-    Documento(int id);
+typedef enum : int {
+    NaoVisitado,
+    Visitando,
+    Concluido,
+} TColor;
+
+typedef struct {
+    int value;
+    int start, end;
+    TColor color;
+} TNode;
+
+bool sim = true;
+
+class Grafo
+{
+    int totalVertices;
     
-    bool AdicionarDependetes (Documento d);
-    bool ChecarDependentes(vector<Documento> v);
-    bool VectorContem(vector<int> v, int i);
+    vector<TNode> vertice;
+    
+    vector<vector<int> > adj;
+    
+    vector<vector<TNode> > adjs;
+    
+public:
+    Grafo();
+    Grafo(int totalVertices);
+    void addAresta (int v1, int v2);
+    
+    void BuscaProfundidade(int v);
+    void DuduDFS(int v);
+    void DuduDFS();
+    
+    void dfs(int v);
+    
+    void ListaVizinhos ();
+    
+    void DAG (int v);
 };
 
-Documento::Documento(int id) {
-    this->id = id;
+Grafo::Grafo() {
+    
 }
 
-class Questao {
-    int totalDocumentos;
-    
-public:
-    vector<Documento> docs;
-    Questao (int totalDocs);
-    bool CriarDependencia (int de, int para);
-};
+int tempo = 0;
 
-Questao::Questao (int totalDocs) {
-    this->totalDocumentos = totalDocs;
-    for (int i = 0; i < totalDocs; i++) {
-        Documento temp(i);
-        docs.push_back(temp);
+Grafo::Grafo(int totalVertices) {
+    this->totalVertices = totalVertices;
+    
+    for (int i = 0; i < totalVertices; i++) {
+        adj.push_back(vector<int>()); // Add an empty row
+        adjs.push_back(vector<TNode>());
+        
+        TNode temp;
+        temp.color = NaoVisitado;
+        temp.value = i;
+        temp.end = 0;
+        vertice.push_back(temp);
     }
 }
 
-
-bool Questao::CriarDependencia (int de, int para) {
-    return this->docs[para].AdicionarDependetes(this->docs[de]);
+void Grafo::addAresta(int v1, int v2) {
+    adj[v1].push_back(v2); // Add column to all rows
+    
+    adjs[v1].push_back(vertice[v2]);
 }
 
-bool Documento::AdicionarDependetes(Documento d) {
-    if ( d.dependentes.size() > 0) {
-        for (vector<int>::iterator it = d.dependentes.begin(); it != d.dependentes.end(); it++) {
-            int other = *it;
-            if(other == id){
+
+//https://davidng94.wordpress.com/2015/11/03/uri-online-judge-1610-dudu-service-maker/
+bool depthFirstBreadth(int vertex) {
+    status[vertex] = VISITED;
+    
+    // cout << "Vertex: " << vertex << endl;
+    // cout << "Adjacents Size: " << adjacentsTable[vertex].size() << endl;
+    
+    for(int index=0; index<adjacentsTable[vertex].size(); index++) {
+        int adjacentVertex = adjacentsTable[vertex][index];
+        
+        // cout << "Adjacents Vertex: " << adjacentsTable[vertex][index] << endl;
+        // cout << "Adjacents Vertex Status: " << status[adjacentVertex] << endl << endl;
+        
+        if(status[adjacentVertex] == NOT_VISITED) {
+            if(!depthFirstBreadth(adjacentVertex)) {
                 return false;
-            }else{
-                dependentes.push_back(other);
+            }
+        } else if(status[adjacentVertex] == VISITED) {
+            return false;
+        }
+    }
+    
+    status[vertex] = FINISHED;
+    return true;
+}
+
+
+bool Grafo::DAG (int v) {
+    if (vertice[v].color == Concluido)
+        return false;
+    
+    vertice[v].start = tempo++;
+    vertice[v].color = Visitando;
+    
+    for (vector<TNode>::iterator neighbours = adjs[v].begin() ; neighbours != adjs[v].end(); neighbours++) {
+        if (vertice[neighbours->value].color == NaoVisitado) {
+            DAG(neighbours->value);
+        }
+        else if (vertice[neighbours->value].color == Visitando) {
+            if (vertice[neighbours->value].end == 0) {
+                //                cout << "loop de " << v << " para " << neighbours->value << endl;
+                sim = false;
             }
         }
     }
-    dependentes.push_back(d.id);
     
-    return true;
+    vertice[v].end = tempo++;
+    vertice[v].color = Concluido;
+    
 }
-bool Documento::ChecarDependentes(vector<Documento> v) {
-    if ( dependentes.size() > 0) {
-        for (vector<int>::iterator it = dependentes.begin(); it != dependentes.end(); it++) {
-            int other = *it;
-            if(VectorContem(v[other].dependentes, id)){
-                return false;
+
+void Grafo::dfs(int v)
+{
+    stack<int> pilha;
+    bool visitados[totalVertices]; // vetor de visitados
+    int tempo = 0;
+    
+    // marca todos como não visitados
+    for(int i = 0; i < totalVertices; i++)
+        visitados[i] = false;
+    
+    while(true)
+    {
+        vector<TNode>::iterator it;
+        
+        if(!visitados[v])
+        {
+            tempo++;
+            cout << "Visitando vertice " << v << " ...\n";
+            visitados[v] = true; // marca como visitado
+            pilha.push(v); // insere "v" na pilha
+        }
+        
+        bool achou = false;
+        
+        // busca por um vizinho não visitado
+        for(it = adjs[v].begin(); it != adjs[v].end(); it++)
+        {
+            if(!visitados[it->value])
+            {
+                achou = true;
+                break;
             }
         }
-    }
-    return true;
-}
-bool Documento::VectorContem(vector<int> v, int n){
-    for (vector<int>::iterator it = v.begin(); it != v.end(); it++) {
-        int other = *it;
-        if(other == n){
-            return true;
+        
+        if(achou) {
+            v = it->value; // atualiza o "v"
+        } else
+        {
+            // se todos os vizinhos estão visitados ou não existem vizinhos
+            // remove da pilha
+            pilha.pop();
+            // se a pilha ficar vazia, então terminou a busca
+            if(pilha.empty())
+                break;
+            // se chegou aqui, é porque pode pegar elemento do topo
+            v = pilha.top();
         }
     }
-    return false;
 }
+
+
+void Grafo::DuduDFS (int v) {
+    stack<int> pilha;
+    bool visitados[totalVertices];
+    
+    for (int i = 0; i < totalVertices; i++) {
+        visitados[i] = false;
+    }
+    
+    do {
+        if (!visitados[v]) {
+            cout << "Visitando: " << v << endl;
+            visitados[v] = true;
+            pilha.push(v);
+        }
+        
+        bool achou = false;
+        vector<int>::iterator it;
+        
+        for(it = adj[v].begin(); it != adj[v].end(); it++)
+        {
+            if(!visitados[*it])
+            {
+                achou = true;
+                break;
+            }
+        }
+        
+        if(achou) {
+            v = *it; // atualiza o "v"
+        }
+        else
+        {
+            // se todos os vizinhos estão visitados ou não existem vizinhos
+            // remove da pilha
+            pilha.pop();
+            // se a pilha ficar vazia, então terminou a busca
+            if(pilha.empty())
+                break;
+            // se chegou aqui, é porque pode pegar elemento do topo
+            v = pilha.top();
+        }
+        
+    } while (!pilha.empty());
+}
+
+
+void Grafo::DuduDFS () {
+    stack<int> pilha;
+    bool visitados[totalVertices]; // vetor de visitados
+    
+    // marca todos como não visitados
+    for(int i = 0; i < totalVertices; i++)
+        visitados[i] = false;
+    
+    for (int i = 0; i < adj.size(); i++) {
+        if (visitados[i])
+            continue;
+        
+        int v = i;
+        
+        do {
+            if(!visitados[v])
+            {
+                cout << "Visitando vertice " << v << " ...\n";
+                visitados[v] = true; // marca como visitado
+                pilha.push(v); // insere "v" na pilha
+            } else {
+                cout << "Ja visitado: " << v << endl;
+            }
+            
+            bool achou = false;
+            vector<int>::iterator it;
+            
+            // busca por um vizinho não visitado
+            for(it = adj[v].begin(); it != adj[v].end(); it++)
+            {
+                // it - lista de vizinhos
+                if(!visitados[*it])
+                {
+                    achou = true;
+                    break;
+                }
+            }
+            
+            if(achou)
+                v = *it; // atualiza o "v"
+            else
+            {
+                cout << "nao achou para: " << v << endl;
+                // se todos os vizinhos estão visitados ou não existem vizinhos
+                // remove da pilha
+                pilha.pop();
+                // se a pilha ficar vazia, então terminou a busca
+                if(pilha.empty())
+                    break;
+                // se chegou aqui, é porque pode pegar elemento do topo
+                v = pilha.top();
+            }
+        } while (!pilha.empty());
+        
+        cout << endl;
+    }
+}
+
+void Grafo::ListaVizinhos () {
+    
+    for (int i = 0; i < adj.size(); i++) {
+        cout << "Parentes de " << i << ": ";
+        for (vector<int>::iterator it = adj[i].begin(); it != adj[i].end(); it++ ) {
+            cout << *it << ", ";
+        }
+        cout << endl;
+    }
+}
+
+int InitializeInput (int argc, const char * argv[]) {
+    if (argc > 1)
+    {
+        char cCurrentPath[FILENAME_MAX];
+        
+        if (!GetCurrentDir(cCurrentPath, sizeof(cCurrentPath)))
+        {
+            return errno;
+        }
+        
+        cCurrentPath[sizeof(cCurrentPath) - 1] = '\0'; /* not really required */
+        
+        string path(cCurrentPath);
+        path.append("/");
+        path.append(argv[1]);
+        
+        FILE * fp = freopen(path.c_str(), "r", stdin);
+        if (fp == NULL)
+        {
+            perror(argv[1]);
+            exit(1);
+        }
+    }
+    
+    return 0;
+}
+
 
 int main (int argc, const char * argv[]) {
     int t, n, m;
     int a, b; // a depende de b
     
-//    InitializeInput(argc, argv);
+    Grafo g;
+    
+    InitializeInput(argc, argv);
     
     cin >> t;
     for (int i = 0; i < t; i++) {
         cin >> n;
         cin >> m;
         
-        bool sim = true;
-        
-        Questao q(n);
+        g = Grafo(n);
         
         for (int j = 0; j < m; j++) {
             cin >> a >> b;
             a--;
             b--;
-            if (q.CriarDependencia(a, b) == false) {
-                sim = false;
-//                break;
-            }
+            g.addAresta(a, b);
         }
         
-        if(sim){
-            for (vector<Documento>::iterator it = q.docs.begin(); it != q.docs.end(); it++) {
-                Documento other = *it;
-                if(!other.ChecarDependentes(q.docs)){
-                    sim = false;
-                    break;
-                }
-            }
+        for (int i = 0; i < n; i++) {
+            g.DAG(i);
         }
+        
         cout << (sim  ? "NAO" : "SIM") << endl;
     }
     
+    
+    // Grafo g;
     return 0;
 }
